@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { PersonArmsSpread, X, ArrowCounterClockwise } from '@/components/slab'
 import { DEFAULT_PREFS, readPrefs, savePrefs, type A11yPrefs, type TextSize } from '@/lib/a11y'
+import { useDismiss, type DismissReason } from '@/hooks/useDismiss'
 
 /**
  * AccessMenu - fixed bottom-left, the mirror of the reviews widget.
@@ -20,46 +21,62 @@ const SWITCHES: { key: 'contrast' | 'motion' | 'links'; label: string; desc: str
   { key: 'links', label: 'Underline links', desc: 'Every link gets a line' },
 ]
 
+/** Opens the panel from elsewhere - the phone's QuickMenu. `detail` is the
+ *  element to hand focus back to on close, since the float button is hidden
+ *  on phones. */
+export const A11Y_OPEN_EVENT = 'a11y:open'
+
 export default function AccessMenu() {
   const [open, setOpen] = useState(false)
   const [prefs, setPrefs] = useState<A11yPrefs>(readPrefs)
+  const rootRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
+  // Where focus goes on close: the control that opened the panel from
+  // elsewhere (the float button is hidden on phones), else the float button.
+  const returnRef = useRef<HTMLElement | null>(null)
+
+  const close = useCallback((reason: DismissReason | 'button') => {
+    setOpen(false)
+    // An outside tap leaves focus where the visitor tapped. The opener may
+    // have unmounted since (Home's header menu is gone on other routes).
+    if (reason !== 'outside') {
+      const opener = returnRef.current
+      ;(opener?.isConnected ? opener : buttonRef.current)?.focus()
+    }
+    returnRef.current = null
+  }, [])
+  useDismiss(open, rootRef, close)
+
+  // Land keyboard and screen-reader users inside the dialog: the control that
+  // opened it may have just gone inert with its own menu.
+  useEffect(() => {
+    if (open) panelRef.current?.focus()
+  }, [open])
+
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      returnRef.current = (e as CustomEvent<HTMLElement | null>).detail
+      setOpen(true)
+    }
+    window.addEventListener(A11Y_OPEN_EVENT, onOpen)
+    return () => window.removeEventListener(A11Y_OPEN_EVENT, onOpen)
+  }, [])
 
   function update(next: A11yPrefs) {
     setPrefs(next)
     savePrefs(next)
   }
 
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setOpen(false)
-        buttonRef.current?.focus()
-      }
-    }
-    const onDown = (e: PointerEvent) => {
-      const t = e.target as Node
-      if (panelRef.current?.contains(t) || buttonRef.current?.contains(t)) return
-      setOpen(false)
-    }
-    window.addEventListener('keydown', onKey)
-    window.addEventListener('pointerdown', onDown)
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      window.removeEventListener('pointerdown', onDown)
-    }
-  }, [open])
-
   const changed = prefs.text !== 'md' || prefs.contrast || prefs.motion || prefs.links
 
   return (
-    <div className={`a11y${open ? ' is-open' : ''}`} data-widget="a11y">
+    <div className={`a11y${open ? ' is-open' : ''}`} data-widget="a11y" ref={rootRef}>
       <div
         className="a11y__panel"
         role="dialog"
         aria-label="Accessibility options"
+        tabIndex={-1}
         ref={panelRef}
         inert={!open || undefined}
       >
@@ -68,10 +85,7 @@ export default function AccessMenu() {
           <button
             type="button"
             className="a11y__close"
-            onClick={() => {
-              setOpen(false)
-              buttonRef.current?.focus()
-            }}
+            onClick={() => close('button')}
             aria-label="Close accessibility options"
           >
             <X size={16} weight="bold" aria-hidden="true" />
@@ -130,7 +144,10 @@ export default function AccessMenu() {
         type="button"
         className="a11y__button"
         ref={buttonRef}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          returnRef.current = null
+          setOpen((v) => !v)
+        }}
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label="Accessibility options"

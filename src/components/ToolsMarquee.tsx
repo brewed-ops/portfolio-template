@@ -63,26 +63,31 @@ export default function ToolsMarquee() {
           const useMask = tool.iconPath.endsWith('.svg') && !!tool.color
           return (
             <div key={`${tool.name}-${i}`} className="tools-marquee__item">
-              {useMask ? (
-                <span
-                  className="tools-marquee__icon"
-                  style={{
-                    ['--icon-url' as string]: `url('${tool.iconPath}')`,
-                    ['--brand-color' as string]: tool.color ?? 'var(--navy)',
-                  }}
-                />
-              ) : (
-                <img
-                  className="tools-marquee__img"
-                  src={tool.iconPath}
-                  alt=""
-                  aria-hidden="true"
-                  loading="lazy"
-                  decoding="async"
-                  width={20}
-                  height={20}
-                />
-              )}
+              {/* A plain box on desktop (display: contents); on phones it is
+                  the rounded app-icon tile - a masked icon cannot carry its
+                  own background, so the tile needs its own element. */}
+              <span className="tools-marquee__tile">
+                {useMask ? (
+                  <span
+                    className="tools-marquee__icon"
+                    style={{
+                      ['--icon-url' as string]: `url('${tool.iconPath}')`,
+                      ['--brand-color' as string]: tool.color ?? 'var(--navy)',
+                    }}
+                  />
+                ) : (
+                  <img
+                    className="tools-marquee__img"
+                    src={tool.iconPath}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    decoding="async"
+                    width={20}
+                    height={20}
+                  />
+                )}
+              </span>
               <span className="tools-marquee__label">{tool.name}</span>
             </div>
           )

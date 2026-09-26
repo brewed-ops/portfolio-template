@@ -2,14 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover: without it every env(safe-area-inset-*) the phone
+         shell pads with is 0. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- PLACEHOLDER - SEO. Replace the title, description, URLs and share image. -->
     <title>Your Name - Your Title</title>
     <meta name="description" content="PLACEHOLDER - one sentence on what you do and who you do it for." />
     <meta name="author" content="Your Name" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
-    <meta name="theme-color" content="#0B1E3F" />
+    <!-- The browser bar takes the page colour (--cream per theme); the inline
+         theme script below and lib/theme.ts keep it in step with the toggle.
+         Literal hex here only because this runs before any stylesheet loads. -->
+    <meta name="theme-color" content="#F4F4ED" />
     <!-- <link rel="canonical" href="https://yoursite.com/" /> -->
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -39,6 +44,10 @@
             localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
         } catch (e) {
           document.documentElement.dataset.theme = 'light';
+        }
+        if (document.documentElement.dataset.theme === 'dark') {
+          var bar = document.querySelector('meta[name="theme-color"]');
+          if (bar) bar.setAttribute('content', '#070B14');
         }
       })();
     </script>

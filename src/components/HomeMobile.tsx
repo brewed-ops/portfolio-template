@@ -1,16 +1,17 @@
 import { Link } from 'react-router-dom'
-import { SealCheck, ArrowUpRight, Play, Stack, Coffee } from '@/components/slab'
+import { SealCheck, CaretRight, Play, Stack, Coffee } from '@/components/slab'
 import { profile } from '@/data/profile'
-import ThemeButton from './ThemeButton'
+import QuickMenu from './QuickMenu'
 
 /**
  * Home on a phone, the parts the rail and the bento used to carry:
  *
- *   HomeProfile  avatar, name, verified mark, handle and the theme switch -
- *                the rail's identity block, laid flat
- *   HomeStats    three proof facts (profile.stats)
- *   HomeExplore  one tile per rail view in a snap row, then the first
- *                testimonial as a proof card
+ *   HomeProfile  avatar, name, verified mark, handle and the QuickMenu
+ *                (theme + accessibility) - the rail's identity block, laid flat
+ *   HomeStats    three proof facts (profile.stats), each named by a glyph so
+ *                it reads at a glance
+ *   HomeExplore  one shelf card per rail view in a snap row, then the first
+ *                testimonial as a video stage
  */
 
 export function HomeProfile() {
@@ -26,7 +27,7 @@ export function HomeProfile() {
           {profile.handle} · {profile.role}
         </span>
       </div>
-      <ThemeButton className="hprofile__theme" />
+      <QuickMenu className="hprofile__menu" />
     </header>
   )
 }
@@ -34,10 +35,11 @@ export function HomeProfile() {
 export function HomeStats() {
   return (
     <ul className="hstats" role="list">
-      {profile.stats.map((s, i) => (
+      {profile.stats.map(({ value, label, Icon }, i) => (
         <li key={i}>
-          <b>{s.value}</b>
-          <span>{s.label}</span>
+          <Icon className="hstats__icon" size={18} weight="duotone" aria-hidden="true" />
+          <b className="hstats__value">{value}</b>
+          <span className="hstats__label">{label}</span>
         </li>
       ))}
     </ul>
@@ -46,8 +48,8 @@ export function HomeStats() {
 
 const TILES = [
   { n: '01', label: 'Projects', to: '/projects', title: 'PLACEHOLDER - projects headline', desc: 'Tell me what to put here.', img: '/placeholders/project-1.jpg' },
-  { n: '02', label: 'Services', to: '/services', title: 'PLACEHOLDER - services headline', desc: 'Tell me what to put here.', Icon: Stack, dark: true },
-  { n: '03', label: 'Showcase', to: '/showcase', title: 'PLACEHOLDER - your flagship', desc: 'Tell me what to put here.', Icon: Coffee, dark: true, accent: true },
+  { n: '02', label: 'Services', to: '/services', title: 'PLACEHOLDER - services headline', desc: 'Tell me what to put here.', Icon: Stack },
+  { n: '03', label: 'Showcase', to: '/showcase', title: 'PLACEHOLDER - your flagship', desc: 'Tell me what to put here.', Icon: Coffee, accent: true },
   { n: '04', label: 'Testimonials', to: '/testimonials', title: 'PLACEHOLDER - testimonials headline', desc: 'Tell me what to put here.', img: '/placeholders/testimonial-1.jpg' },
   { n: '05', label: 'About', to: '/about', title: `Hi, I'm ${profile.firstName}.`, desc: 'PLACEHOLDER - one line about you.', img: profile.avatarSrc },
 ] as const
@@ -57,39 +59,42 @@ export function HomeExplore() {
     <>
       <div className="hsec">
         <h2 className="hsec__title">Explore</h2>
-        <span className="hsec__aside">Swipe</span>
       </div>
       <ul className="htiles" role="list">
         {TILES.map((t) => (
           <li key={t.to}>
-            <Link to={t.to} className={`htile${'dark' in t && t.dark ? ' htile--dark' : ''}${'accent' in t && t.accent ? ' htile--accent' : ''}`}>
-              <span className="htile__n">{t.n} {t.label}</span>
+            <Link to={t.to} className={`htile${'accent' in t && t.accent ? ' htile--accent' : ''}`}>
               {'img' in t ? (
-                <img className="htile__img" src={t.img} alt="" loading="lazy" />
+                <span className="htile__media"><img className="htile__img" src={t.img} alt="" loading="lazy" /></span>
               ) : (
-                <span className="htile__glyph"><t.Icon size={52} weight="duotone" aria-hidden="true" /></span>
+                <span className="htile__media htile__glyph"><t.Icon size={52} weight="duotone" aria-hidden="true" /></span>
               )}
               <span className="htile__body">
+                <span className="htile__n">{t.n} {t.label}</span>
                 <span className="htile__title">{t.title}</span>
                 <span className="htile__desc">{t.desc}</span>
               </span>
-              <span className="htile__go" aria-hidden="true"><ArrowUpRight size={16} weight="bold" /></span>
             </Link>
           </li>
         ))}
       </ul>
 
+      {/* A header that links carries its chevron on the title itself. */}
       <div className="hsec">
-        <h2 className="hsec__title">What clients say</h2>
-        <Link to="/testimonials" className="hsec__aside">See all</Link>
+        <h2 className="hsec__title">
+          <Link to="/testimonials" className="hsec__link">
+            What clients say
+            <CaretRight size={16} weight="bold" aria-hidden="true" />
+          </Link>
+        </h2>
       </div>
-      <Link to="/testimonials" className="hproof">
-        <span className="hproof__thumb">
-          <img src="/placeholders/testimonial-1.jpg" alt="" width={96} height={96} loading="lazy" />
-          <span className="hproof__play" aria-hidden="true"><Play size={14} weight="fill" /></span>
+      <Link to="/testimonials" className="hproof" aria-label="Client testimonial. PLACEHOLDER - a one-line teaser for your best testimonial.">
+        <span className="hproof__stage">
+          <img src="/placeholders/testimonial-1.jpg" alt="" loading="lazy" />
+          <span className="hproof__play" aria-hidden="true"><Play size={20} weight="fill" /></span>
+          <span className="hproof__dur" aria-hidden="true">0:00</span>
         </span>
         <span className="hproof__copy">
-          <span className="hproof__kicker">Client testimonial · 0:00</span>
           <span className="hproof__title">PLACEHOLDER - tell me what to put here: a one-line teaser for your best testimonial.</span>
           <span className="hproof__meta">PLACEHOLDER - client role</span>
         </span>

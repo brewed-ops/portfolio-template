@@ -1,0 +1,191 @@
+/* ============================================
+   MOBILE PASS - motion, native feel, and the phone overrides of shared sheets
+   Picked on two plan canvases (PLAN-mobile-motion.html, PLAN-mobile-style.html)
+   from emilkowalski's apple-design and animation skills. The phone's own
+   components are styled whole in mobile-app.css; this sheet holds what must
+   load after apple.css and a11y.css: the motion tokens, the native-feel
+   layer, and phone changes to components other sheets own (the headline,
+   the tools band, the accessibility panel). Everything but the two lines at
+   the top is scoped below the 1100px shell breakpoint.
+
+   Sections:
+     1  Native feel       tap flash, tap delay, control text, motion tokens
+     2  Pages             a new page rises into place
+     3  Headline          one line at every phone width
+     4  Tools             app icons straight on the page, no plate
+     5  Explore depth     tiles ease down at the edges of the row
+     6  Accessibility     the panel drops from under the QuickMenu
+     7  Preferences       reduced motion
+   ============================================ */
+
+/* ---------- 1. Native feel ----------
+   No grey box on tap anywhere: every control has its own :active state. */
+html { -webkit-tap-highlight-color: transparent; }
+
+/* ToolsMarquee's icon wrapper is only a box on phones (section 4). */
+.tools-marquee__tile { display: contents; }
+
+@media (max-width: 1099px) {
+  /* Emil's strong ease-out: starts fast, so a press reads instant (apple.css
+     set --ease-out to plain CSS `ease`). --spring-ui is a critically damped
+     spring, response 0.32s, solved to linear() by the apple-design skill's
+     spring-linear.py (470ms). */
+  :root {
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --spring-ui: linear(0, 0.1143 6.2%, 0.3205 12.5%, 0.5161 18.8%, 0.6708 25%, 0.7828 31.2%, 0.8599 37.5%, 0.9111 43.8%, 0.9444 50%, 0.9655 56.2%, 0.9788 62.5%, 0.9871 68.8%, 0.9922 75%, 0.9953 81.2%, 0.9972 87.5%, 0.9983 93.8%, 1 100%);
+  }
+
+  /* Controls fire on tap with no double-tap wait, and a long press never
+     selects a label or pops the link callout. Content text stays selectable. */
+  a,
+  button,
+  [role='button'] { touch-action: manipulation; }
+  .tabbar,
+  .htile,
+  .hproof,
+  .qmenu,
+  .hsec__link,
+  .pfilter__btn {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* ---------- 2. Pages ----------
+     From the first route change on, the page that mounts fades up 8px - it
+     covers the blank beat while a route's chunk loads. Not on first load:
+     the intro owns that arrival (App.tsx sets `has-navigated`). No fill mode:
+     a filled animation would keep the page root a stacking context. */
+  html.has-navigated .shell__panel > * { animation: route-rise 260ms var(--ease-out); }
+
+  /* ---------- 3. Headline: one line at every phone width ----------
+     Sized to the content box (viewport less both panel gutters) divided by
+     --headline-em, the headline's own width in em at this weight and tracking.
+     Retune it when you change the line in profile.ts: set the headline in a
+     700-weight system font at 100px with letter-spacing -0.024em, divide its
+     width by 100, add 2% slack. 15.4 fits the placeholder headline in
+     profile.ts (34 characters); a 30-character line needs about 12.8.
+     Never larger than home.css's clamp. Not `nowrap`: a longer line, a larger
+     text setting or Android font scaling wraps instead of clipping.
+     .boot__title is the intro's copy and must match exactly (boot.css: change
+     one, change both). */
+  :root { --headline-em: 15.4; }
+  .home__title,
+  .boot__title { font-size: min(clamp(30px, 3.5vw, 72px), calc((100vw - 2 * var(--panel-x)) / var(--headline-em))); }
+
+  /* ---------- 4. Tools: app icons, no plate ----------
+     The glass plate goes; the label becomes a section head like Explore, and
+     each tool is a rounded app-icon tile with its name under it. The row runs
+     edge to edge and fades out at both ends instead of cutting a word.
+     `.home .x` selectors: home.css and apple.css style the band that way. */
+  .home .home__glass--tools {
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  /* shell.css re-pins light tokens inside .tools-marquee for the dark theme
+     (it was a white strip). With no plate the labels sit on the page, so the
+     page's own --muted is resolved here, outside the re-pin, and handed in. */
+  .home__tools { gap: 10px; --tools-label: var(--muted); }
+  .home__tools-eyebrow { display: none; }
+  .home__tools-label {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--navy);
+  }
+  .home .tools-marquee {
+    margin: 0 calc(-1 * var(--panel-x));
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  }
+  .home .tools-marquee__track { gap: 6px; padding: 2px var(--panel-x) 4px; }
+  .home .tools-marquee__item {
+    flex-direction: column;
+    gap: 6px;
+    width: 72px;
+    padding-right: 0;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.005em;
+  }
+  .home .tools-marquee__item::after { display: none; }
+  .home .tools-marquee__tile {
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: var(--brands-chip-bg);
+    box-shadow:
+      inset 0 0 0 1px var(--brands-chip-border),
+      0 4px 10px -6px rgba(11, 30, 63, 0.35);
+  }
+  .home .tools-marquee__icon,
+  .home .tools-marquee__img { width: 26px; height: 26px; }
+  .home .tools-marquee__label {
+    max-width: 70px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--tools-label);
+  }
+
+  /* ---------- 5. Explore depth ----------
+     A tile leaving the row eases down to 94% and dims; the one in the snap
+     slot sits at full size. A scroll-driven animation, so it runs on the
+     compositor in the same frame as the swipe. Opacity is safe because the
+     shelf media are light plates. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .htiles > li { animation: htile-depth linear both; }
+      /* Its own, more specific rule: a minifier folds animation-timeline into
+         the shorthand above, which Chrome then rejects whole. */
+      ul.htiles > li { animation-timeline: view(inline); }
+    }
+  }
+
+  /* ---------- 6. Accessibility ----------
+     The floating button is gone on phones; the QuickMenu opens the panel,
+     which drops from under the QuickMenu button, top right. */
+  .a11y {
+    top: calc(var(--qmenu-top) + var(--qmenu-size) + 8px);
+    right: 16px;
+    bottom: auto;
+    left: auto;
+  }
+  .a11y__button { display: none; }
+  .a11y__panel {
+    top: 0;
+    right: 0;
+    bottom: auto;
+    left: auto;
+    transform: translateY(-8px) scale(0.98);
+    transform-origin: top right;
+  }
+}
+
+@keyframes route-rise {
+  from { opacity: 0; transform: translateY(8px); }
+}
+@keyframes htile-depth {
+  0% { transform: scale(0.94); opacity: 0.6; }
+  45% { transform: none; opacity: 1; }
+  82% { transform: none; opacity: 1; }
+  100% { transform: scale(0.94); opacity: 0.6; }
+}
+
+/* ---------- 7. Preferences ----------
+   Reduced motion keeps the fade and drops the travel. The site's own switch
+   (a11y.css) stops every animation outright. */
+@media (max-width: 1099px) and (prefers-reduced-motion: reduce) {
+  html.has-navigated .shell__panel > * { animation-name: route-fade; }
+}
+@keyframes route-fade {
+  from { opacity: 0; }
+}

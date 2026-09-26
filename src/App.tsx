@@ -1,7 +1,7 @@
-import { lazy, Suspense, useState, useEffect, useRef } from 'react'
+import { lazy, Suspense, useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import TabBar from '@/components/TabBar'
-import ThemeButton from '@/components/ThemeButton'
+import QuickMenu from '@/components/QuickMenu'
 import Rail from '@/components/Rail'
 import IntroOverlay from '@/components/IntroOverlay'
 import CursorRing from '@/components/CursorRing'
@@ -34,8 +34,9 @@ export default function App() {
   const FIXED_ROUTES = ['/', '/projects', '/testimonials', '/about', '/contact']
   const isFixed = FIXED_ROUTES.includes(pathname)
   // Below the shell breakpoint the rail is gone: a bottom tab bar navigates,
-  // the theme switch floats top-right on every page but Home (whose profile
-  // header carries it), and the visits widget folds into that header.
+  // the QuickMenu (theme + accessibility) floats top-right on every page but
+  // Home (whose profile header carries it), and the visits widget folds into
+  // that header.
   const phone = useIsPhone()
   const panelRef = useRef<HTMLElement>(null)
 
@@ -43,6 +44,15 @@ export default function App() {
   // the browser only restores scroll on the document.
   useEffect(() => {
     panelRef.current?.scrollTo({ top: 0, behavior: 'auto' })
+  }, [pathname])
+
+  // From the first route change on, a page that mounts rises into place
+  // (mobile-pass.css). Not on the first load: the intro owns that arrival.
+  // Layout effect: set before paint, or the new page shows for one frame at
+  // full opacity and then jumps back to start its rise.
+  const firstPath = useRef(pathname)
+  useLayoutEffect(() => {
+    if (pathname !== firstPath.current) document.documentElement.classList.add('has-navigated')
   }, [pathname])
 
   // The page measures its own frame health once the intro clears and steps
@@ -92,7 +102,7 @@ export default function App() {
           <HeroCanvas />
         </Suspense>
       )}
-      {phone && pathname !== '/' && <ThemeButton className="theme-btn--float" />}
+      {phone && pathname !== '/' && <QuickMenu className="qmenu--float" />}
       <div className="shell">
         <Rail />
         <main

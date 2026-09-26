@@ -1,20 +1,35 @@
 /* ============================================
    PHONE APP CHROME (below the shell breakpoint)
-   The rail is gone under 1100px. What replaces it is app furniture:
-     .tabbar      bottom tab bar, Contact raised in the middle
-     .theme-btn   the theme switch, in Home's header or floating top-right
+   The rail is gone under 1100px. What replaces it is app furniture, and this
+   sheet is the one owner of each piece:
+     .tabbar      bottom tab bar: a light material, a pill that travels between
+                  tabs, Contact raised in the middle, hides on scroll down
+     .qmenu       the "more" button (theme + accessibility), in Home's header
+                  or floating top-right on every other page
      .hprofile    Home's identity header (the rail, laid flat)
-     .hstats      the three proof facts under the lede
-     .htiles      Home's explore row, one tile per view, snap scrolling
-     .hproof      the first testimonial as a card
-   plus the page-level corrections: no floating pill to clear any more,
-   room at the bottom for the bar, Projects as a two-column grid with a
-   filter, Contact with the form first.
-   Everything here is scoped to max-width: 1099px; the desktop never sees it.
+     .hstats      the three proof facts as a compact glance widget
+     .hsec        section heads; a chevron where the head links
+     .htiles      Home's explore row: shelf cards in a snap row
+     .hproof      the first testimonial as a video stage
+   plus the page-level corrections: room at the bottom for the bar,
+   Projects as a two-column grid with a filter, Contact with the form first.
+   Scoped to max-width: 1099px; the desktop never sees it. The motion tokens,
+   the native-feel layer and overrides of sheets that load after this one
+   live in mobile-pass.css.
    ============================================ */
 
 @media (max-width: 1099px) {
-  /* ---------- Bottom tab bar ---------- */
+  :root {
+    /* QuickMenu geometry, shared with the accessibility panel that drops
+       below it (mobile-pass.css). */
+    --qmenu-size: 44px;
+    --qmenu-top: calc(14px + env(safe-area-inset-top, 0px));
+  }
+
+  /* ---------- Bottom tab bar ----------
+     A light floating material: paper with a bright top edge and a soft lift.
+     Painted, not blurred - a backdrop blur on a fixed bar re-renders every
+     scroll frame on a phone GPU. */
   .tabbar {
     position: fixed;
     left: 14px;
@@ -24,83 +39,204 @@
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     align-items: center;
-    height: 66px;
+    height: 64px;
+    padding: 6px;
     border-radius: var(--radius-pill);
-    background: var(--navy-ink);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    box-shadow: 0 30px 60px -20px rgba(6, 12, 26, 0.6);
+    background: linear-gradient(180deg, var(--white), var(--paper));
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      0 1px 2px rgba(6, 12, 26, 0.06),
+      0 18px 40px -18px rgba(11, 30, 63, 0.4);
+  }
+  [data-theme='dark'] .tabbar {
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 18px 40px -18px rgba(0, 0, 0, 0.8);
   }
   .tabbar__tab {
+    position: relative;
+    z-index: 1; /* above the pill */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     height: 100%;
-    color: rgba(244, 244, 237, 0.58);
-    font-size: 10px;
+    border-radius: var(--radius-pill);
+    color: color-mix(in srgb, var(--navy) 60%, transparent);
+    font-size: 10.5px;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    transition: color var(--dur-fast) var(--ease-out), transform var(--dur-med) var(--ease-spring);
+    letter-spacing: 0.02em;
+    transition: color var(--dur-fast) var(--ease-out), transform 100ms var(--ease-out);
   }
   .tabbar__tab:active { transform: scale(0.94); }
-  .tabbar__tab[aria-current='page'] { color: var(--cream); }
-  .tabbar__tab[aria-current='page'] .tabbar__label { position: relative; }
-  .tabbar__tab[aria-current='page'] .tabbar__label::after {
-    content: '';
+  .tabbar__tab[aria-current='page'] { color: var(--navy); }
+  /* Not the raised button: its envelope keeps its own ink on the orange. */
+  .tabbar__tab[aria-current='page']:not(.tabbar__tab--primary) svg { color: var(--orange-ink); }
+  .tabbar__tab:focus-visible { outline: 2px solid var(--orange); outline-offset: -6px; }
+
+  /* The pill: one mark that travels between tabs (TabBar.tsx places and
+     animates it). The raised Contact button is its own mark, so the pill
+     skips it. */
+  .tabbar__pill {
     position: absolute;
-    left: 50%;
-    bottom: -7px;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--orange);
-    transform: translateX(-50%);
+    top: 6px;
+    bottom: 6px;
+    left: 0;
+    border-radius: var(--radius-pill);
+    background: var(--tint-strong);
+    transform-origin: left center;
+    pointer-events: none;
+    transition: opacity 180ms var(--ease-out);
   }
+  .tabbar__pill[data-off] { opacity: 0; }
+
   .tabbar__fab {
     display: grid;
     place-items: center;
-    width: 56px;
-    height: 56px;
-    margin-top: -26px;
+    width: 54px;
+    height: 54px;
+    margin-top: -24px;
     border-radius: 50%;
     background: var(--orange);
     color: #0B1120;
-    box-shadow: 0 14px 30px -8px rgba(255, 122, 26, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-    transition: transform var(--dur-med) var(--ease-spring);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 1px 2px rgba(6, 12, 26, 0.2),
+      0 10px 24px -10px rgba(255, 122, 26, 0.55);
+    transition: transform var(--dur-med) var(--ease-out), background var(--dur-fast) var(--ease-out);
   }
   .tabbar__tab--primary[aria-current='page'] .tabbar__fab { background: var(--orange-hover); }
-  .tabbar__tab--primary:active .tabbar__fab { transform: scale(0.92); }
-  .tabbar__tab:focus-visible { outline: 2px solid var(--orange); outline-offset: -6px; border-radius: var(--radius-pill); }
+  .tabbar__tab--primary:active .tabbar__fab { transform: scale(0.92); transition-duration: 100ms; }
 
-  /* ---------- Theme switch ---------- */
-  .theme-btn {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--white);
-    color: var(--navy);
-    border: 1px solid var(--line);
-    box-shadow: 0 8px 20px -10px rgba(11, 30, 63, 0.35);
-    transition: transform var(--dur-med) var(--ease-spring);
+  /* Reading down a page the bar slides away; scrolling up brings it back
+     (TabBar.tsx sets the data attributes). The spring takes over only once the
+     visitor scrolls (`data-live`), so the intro's rise-in (boot.css) keeps its
+     timing. Keyboard focus inside the bar always holds it on screen. */
+  .tabbar[data-live] {
+    transition: transform 470ms var(--spring-ui), opacity 200ms var(--ease-out);
+    transition-delay: 0s;
   }
-  .theme-btn:active { transform: scale(0.92); }
-  .theme-btn--float {
+  .tabbar[data-hidden] { transform: translateY(calc(100% + 40px + env(safe-area-inset-bottom, 0px))); }
+  .tabbar[data-hidden]:focus-within { transform: none; }
+
+  /* ---------- QuickMenu ----------
+     One button, a panel that grows out of it from the top right. */
+  .qmenu { position: relative; flex: none; }
+  .qmenu--float {
     position: fixed;
-    top: calc(14px + env(safe-area-inset-top, 0px));
+    top: var(--qmenu-top);
     right: 16px;
     z-index: 50;
   }
+  .qmenu__button {
+    display: grid;
+    place-items: center;
+    width: var(--qmenu-size);
+    height: var(--qmenu-size);
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--white);
+    color: var(--navy);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      0 6px 16px -10px rgba(11, 30, 63, 0.35);
+    cursor: pointer;
+    transition: transform var(--dur-med) var(--ease-out);
+  }
+  .qmenu__button:active { transform: scale(0.92); transition-duration: 100ms; }
+  .qmenu__button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+  /* Visibility waits out the fade on close, so the panel leaves the
+     accessibility tree only once it has left the screen. */
+  .qmenu__panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 70;
+    width: 232px;
+    padding: 6px;
+    border-radius: 18px;
+    background: var(--paper);
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      0 24px 50px -18px rgba(6, 12, 26, 0.45);
+    transform-origin: top right;
+    transform: scale(0.94);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      transform 150ms var(--ease-out),
+      opacity 150ms var(--ease-out),
+      visibility 0s linear 150ms;
+  }
+  .qmenu__panel.is-open {
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    transition:
+      transform 200ms var(--ease-out),
+      opacity 200ms var(--ease-out),
+      visibility 0s;
+  }
+  .qmenu__row {
+    --tg-bg: var(--paper); /* ThemeGlyph's cutter matches the panel */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--navy);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background 100ms var(--ease-out);
+  }
+  .qmenu__row:active { background: var(--tint-strong); }
+  .qmenu__row:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+  .qmenu__row svg { flex: none; }
+  .qmenu__label { flex: 1; }
+  .qmenu__caret { color: var(--muted); }
+  .qmenu__sep { display: block; height: 1px; margin: 2px 10px; background: var(--line); }
+  .qmenu__switch {
+    position: relative;
+    flex: none;
+    width: 36px;
+    height: 22px;
+    border-radius: var(--radius-pill);
+    background: var(--tint-strong);
+    transition: background 200ms var(--ease-out);
+  }
+  .qmenu__switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff; /* a switch knob is white in both themes */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 240ms var(--ease-out);
+  }
+  .qmenu__row[aria-checked='true'] .qmenu__switch { background: var(--orange); }
+  .qmenu__row[aria-checked='true'] .qmenu__switch::after { transform: translateX(14px); }
 
-  /* ---------- Page frame ---------- */
-  /* No floating pill to clear any more; just the notch. Room at the bottom
-     for the bar plus a thumb. */
+  /* ---------- Page frame ----------
+     Just the notch at the top; room at the bottom for the bar plus a thumb. */
   .home,
   .pgrid { padding-top: calc(22px + env(safe-area-inset-top, 0px)); }
   .shell__panel { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
-  /* Inner pages float the theme switch top-right; keep the head clear of it. */
+  /* Inner pages float the QuickMenu top-right; keep the head clear of it. */
   .pgrid__head { padding-right: 56px; }
 
   /* ---------- Home: profile header ---------- */
@@ -117,8 +253,7 @@
     object-fit: cover;
     object-position: top;
     background: var(--white);
-    border: 2px solid var(--white);
-    box-shadow: 0 6px 16px -6px rgba(11, 30, 63, 0.4);
+    box-shadow: inset 0 0 0 1px var(--line), 0 6px 16px -8px rgba(11, 30, 63, 0.35);
   }
   .hprofile__who { display: flex; flex-direction: column; min-width: 0; }
   .hprofile__name {
@@ -131,43 +266,104 @@
     color: var(--navy);
   }
   .hprofile__verified { color: var(--verified); }
+  /* Allowed to wrap: on a narrow phone the handle takes two lines rather
+     than cutting the role short. */
   .hprofile__handle {
-    font-size: 12.5px;
-    color: var(--muted);
     margin-top: 3px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: var(--muted);
   }
-  .hprofile__visits { color: var(--orange-ink); font-weight: 600; }
-  .hprofile__visits::before { content: ' · '; color: var(--muted); font-weight: 400; }
-  .hprofile__theme { margin-left: auto; }
+  .hprofile__menu { margin-left: auto; align-self: flex-start; }
 
   .home__head { gap: 12px; }
   .home__headline { flex-direction: column; }
 
-  /* ---------- Home: stats ---------- */
+  /* ---------- Home: stats, a compact glance widget ----------
+     One material with a bright top edge. Each fact is a stack - its orange
+     glyph, the number, the caption - kept tight so the plate stays compact.
+     Numbers are tabular; hairlines stop short of the edges so they read as
+     dividers, not a table. */
   .hstats {
     display: flex;
-    gap: 22px;
     list-style: none;
-    margin: 4px 0 2px;
-    padding: 0;
+    margin: 6px 0 2px;
+    padding: 10px 2px 9px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, var(--white), var(--paper));
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 1px 1.5px rgba(6, 12, 26, 0.05),
+      0 14px 30px -22px rgba(11, 30, 63, 0.5);
   }
-  .hstats b { display: block; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: var(--navy); }
-  .hstats span { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-
-  /* ---------- Home: section rows ---------- */
-  .hsec {
+  [data-theme='dark'] .hstats {
+    box-shadow:
+      inset 0 0 0 1px var(--line-strong),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 14px 30px -22px rgba(0, 0, 0, 0.85);
+  }
+  .hstats li {
+    position: relative;
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin: 6px 0 -6px;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    padding: 0 6px;
+    text-align: center;
   }
-  .hsec__title { font-size: 15px; font-weight: 700; color: var(--navy); }
-  .hsec__aside { font-size: 12.5px; font-weight: 600; color: var(--orange-ink); }
+  .hstats li + li::before {
+    content: '';
+    position: absolute;
+    top: 18%;
+    bottom: 18%;
+    left: 0;
+    width: 1px;
+    background: var(--line);
+  }
+  .hstats__icon { flex: none; margin-bottom: 5px; color: var(--orange); }
+  .hstats__value {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.024em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    color: var(--navy);
+  }
+  .hstats__label {
+    margin-top: 2px;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.005em;
+    color: var(--muted);
+  }
 
-  /* ---------- Home: explore tiles ---------- */
+  /* ---------- Home: section heads ----------
+     A head that links carries a chevron on the title itself; one that does
+     not is only a title. */
+  .hsec { margin: 8px 0 -4px; }
+  .hsec__title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--navy);
+  }
+  .hsec__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: inherit;
+    transition: opacity 100ms var(--ease-out);
+  }
+  .hsec__link svg { color: var(--muted); }
+  .hsec__link:active { opacity: 0.55; }
+
+  /* ---------- Home: explore row, shelf cards ----------
+     The media is the card; the words sit on the page under it. The whole
+     tile is the button. Proximity snap lets a flick coast and settle on the
+     nearest tile instead of fighting the throw. */
   .htiles {
     display: flex;
     gap: 12px;
@@ -175,99 +371,108 @@
     margin: 0 calc(-1 * var(--panel-x));
     padding: 6px var(--panel-x) 10px;
     overflow-x: auto;
-    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
     scroll-padding-inline: var(--panel-x);
     scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
   }
   .htiles::-webkit-scrollbar { display: none; }
   .htiles > li { flex: 0 0 auto; scroll-snap-align: start; }
   .htile {
-    position: relative;
     display: flex;
     flex-direction: column;
-    width: min(236px, 66vw);
-    height: 290px;
-    border-radius: 22px;
+    width: min(208px, 58vw);
+    color: var(--navy);
+    transition: transform var(--dur-med) var(--ease-out);
+  }
+  .htile:active { transform: scale(0.97); transition-duration: 100ms; }
+  .htile__media {
+    position: relative;
+    display: block;
+    height: 132px;
+    border-radius: 16px;
     overflow: hidden;
     background: var(--white);
-    border: 1px solid var(--line);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 24px 50px -30px rgba(11, 30, 63, 0.35);
-    color: var(--navy);
-    transition: transform var(--dur-med) var(--ease-spring);
+    box-shadow: 0 1px 1.5px rgba(6, 12, 26, 0.04), 0 10px 24px -18px rgba(11, 30, 63, 0.45);
   }
-  .htile:active { transform: scale(0.97); }
-  .htile__n {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    z-index: 1;
-    padding: 5px 9px;
-    border-radius: var(--radius-pill);
-    background: var(--navy-ink);
-    color: var(--cream);
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-  .htile__img { display: block; width: 100%; height: 170px; object-fit: cover; object-position: top; }
-  .htile__glyph { display: grid; place-items: center; height: 170px; color: var(--orange); }
-  .htile__body { padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
-  .htile__title { font-size: 16px; font-weight: 700; line-height: 1.2; }
-  .htile__desc { font-size: 12.5px; line-height: 1.45; color: var(--muted); padding-right: 30px; }
-  .htile__go {
-    position: absolute;
-    right: 12px;
-    bottom: 12px;
-    display: grid;
-    place-items: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: var(--orange);
-    color: #0B1120;
-  }
-  /* Glyph tiles: light plates in the light theme, navy in the dark one. */
-  .htile--dark { background: linear-gradient(160deg, rgba(255, 122, 26, 0.08), transparent 60%), var(--white); }
-  .htile--dark .htile__n { background: var(--orange); color: #0B1120; }
-  .htile--accent { background: linear-gradient(160deg, rgba(24, 56, 140, 0.10), transparent 60%), var(--white); }
-
-  /* ---------- Home: proof card ---------- */
-  .hproof {
-    display: grid;
-    grid-template-columns: 96px minmax(0, 1fr);
-    gap: 14px;
-    align-items: center;
-    padding: 12px;
-    border-radius: 18px;
-    background: var(--white);
-    border: 1px solid var(--line);
-    color: var(--navy);
-    transition: transform var(--dur-med) var(--ease-spring);
-  }
-  .hproof:active { transform: scale(0.98); }
-  .hproof__thumb { position: relative; display: block; }
-  .hproof__thumb img { display: block; width: 96px; height: 96px; object-fit: cover; border-radius: 14px; }
-  .hproof__play {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-  }
-  .hproof__play::before {
+  /* The hairline sits over the image, so a white screenshot still has an edge. */
+  .htile__media::after {
     content: '';
     position: absolute;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: var(--orange);
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px var(--line);
+    pointer-events: none;
   }
-  .hproof__play svg { position: relative; color: #0B1120; }
-  .hproof__copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-  .hproof__kicker { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange-ink); }
-  .hproof__title { font-size: 14px; font-weight: 700; line-height: 1.3; }
-  .hproof__meta { font-size: 12px; color: var(--muted); }
+  .htile__img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .htile__glyph {
+    display: grid;
+    place-items: center;
+    color: var(--orange);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--orange) 13%, transparent), var(--white) 62%);
+  }
+  /* Showcase: the cool blue of the Home glass plate instead of orange. */
+  .htile--accent .htile__glyph { background: linear-gradient(160deg, rgba(24, 56, 140, 0.13), var(--white) 62%); }
+  .htile__body { display: flex; flex-direction: column; gap: 3px; padding: 10px 2px 0; }
+  .htile__n {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--orange-ink);
+  }
+  .htile__title { font-size: 15px; font-weight: 600; line-height: 1.2; letter-spacing: -0.014em; }
+  .htile__desc { font-size: 12.5px; line-height: 1.45; letter-spacing: 0.004em; color: var(--muted); }
+
+  /* ---------- Home: client proof, a video stage ---------- */
+  .hproof {
+    display: block;
+    color: var(--navy);
+    transition: transform var(--dur-med) var(--ease-out);
+  }
+  .hproof:active { transform: scale(0.98); transition-duration: 100ms; }
+  .hproof__stage {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 10;
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--navy-ink);
+    box-shadow: 0 1px 1.5px rgba(6, 12, 26, 0.06), 0 18px 40px -24px rgba(6, 12, 26, 0.55);
+  }
+  .hproof__stage img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  /* Light glass over a photograph in both themes, so its colours are pinned
+     rather than themed. */
+  .hproof__play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin: -28px 0 0 -28px;
+    border-radius: 50%;
+    background: rgba(251, 251, 247, 0.92);
+    color: #0B1E3F;
+    box-shadow: 0 8px 20px -8px rgba(6, 12, 26, 0.5);
+  }
+  .hproof__play svg { margin-left: 3px; } /* a play triangle's optical centre */
+  .hproof__dur {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    background: rgba(6, 12, 26, 0.7);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .hproof__copy { display: flex; flex-direction: column; gap: 3px; padding: 12px 2px 0; }
+  .hproof__title { font-size: 16px; font-weight: 700; line-height: 1.3; letter-spacing: -0.012em; }
+  .hproof__meta { font-size: 12px; letter-spacing: 0.004em; color: var(--muted); }
 
   /* ---------- Projects: filter + two-column grid ---------- */
   .pfilter {
@@ -296,6 +501,7 @@
     color: var(--navy);
     box-shadow: 0 2px 8px -2px rgba(11, 30, 63, 0.25);
   }
+  [data-theme='dark'] .pfilter__btn[aria-pressed='true'] { background: var(--paper); }
   .pgrid__hint { display: none; }
   .bento--projects { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .bento--projects .bento__card--wide,
@@ -304,6 +510,36 @@
   .bento--projects .bento__card { padding: 12px; }
   .bento--projects .bento__card--wide .bento__media { height: 150px; }
   .bento--projects .bento__card:not(.bento__card--wide) .bento__media { max-height: 118px; }
+
+  /* ---------- Contact: the form first, submit within reach ---------- */
+  .cgrid__glass { flex-direction: column; }
+  .cgrid__panel { order: -1; }
+
+  /* ---------- Preferences ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    .tabbar__tab:active,
+    .tabbar__tab--primary:active .tabbar__fab,
+    .qmenu__button:active,
+    .htile:active,
+    .hproof:active { transform: none; }
+    .tabbar__tab:active { background: var(--tint); }
+    .htile:active .htile__media,
+    .hproof:active .hproof__stage { opacity: 0.85; }
+    .qmenu__panel,
+    .qmenu__panel.is-open { transform: none; }
+  }
+  @media (prefers-contrast: more) {
+    .tabbar,
+    .hstats,
+    .qmenu__button,
+    .qmenu__panel { box-shadow: inset 0 0 0 1px var(--line-strong); }
+    .htile__media::after { box-shadow: inset 0 0 0 1px var(--line-strong); }
+  }
+}
+
+/* Tablets: the shelf grows with the screen. */
+@media (min-width: 640px) and (max-width: 1099px) {
+  .htile { width: min(260px, 40vw); }
 }
 
 @media (max-width: 639px) {
@@ -311,19 +547,8 @@
   .bento--projects .bento__desc { font-size: 12px; }
 }
 
-/* ---------- Contact: the form first, submit within reach ---------- */
-@media (max-width: 1099px) {
-  .cgrid__glass { flex-direction: column; }
-  .cgrid__panel { order: -1; }
+/* Small phones: keep the bar's labels legible. */
+@media (max-width: 380px) {
+  .tabbar { left: 10px; right: 10px; height: 62px; }
+  .tabbar__tab { font-size: 10px; }
 }
-
-/* ---------- Dark theme ---------- */
-[data-theme='dark'] .theme-btn { background: var(--paper); }
-[data-theme='dark'] .htile { background: var(--paper); }
-[data-theme='dark'] .htile--dark { background: var(--navy-ink); border-color: transparent; color: var(--cream); }
-[data-theme='dark'] .htile--dark .htile__desc { color: rgba(244, 244, 237, 0.65); }
-[data-theme='dark'] .htile--accent { background: linear-gradient(160deg, #1C3A73, var(--navy-ink) 70%); }
-[data-theme='dark'] .hproof { background: var(--paper); }
-[data-theme='dark'] .hprofile__avatar { border-color: var(--paper); }
-[data-theme='dark'] .pfilter__btn[aria-pressed='true'] { background: var(--paper); }
-[data-theme='dark'] .tabbar { background: #04070F; }

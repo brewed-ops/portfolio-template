@@ -188,8 +188,9 @@ export default function IntroOverlay() {
 
       // Words: flex swallows the literal spaces, so the column gap is one
       // measured space and the row is allowed to wrap. Same width, same face,
-      // same gap as the real headline, so it breaks on the same words - on a
-      // phone that is two lines, and the flight lands on the same shape.
+      // same gap as the real headline, so it breaks on the same words (one
+      // line on phones too, see mobile-pass.css) and the flight lands on the
+      // same shape.
       const wordEls = Array.from(title.querySelectorAll<HTMLElement>('.boot__word'))
       const probe = document.createElement('span')
       probe.className = 'boot__word'

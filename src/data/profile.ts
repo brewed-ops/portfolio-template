@@ -10,13 +10,16 @@
  * other files in src/data/ and at the top of each view component.
  */
 
+import { Briefcase, SealCheck, Clock, type Icon } from '@/components/slab'
+
 export type SocialLink = {
   label: string
   href: string
   iconPath: string
 }
 
-export type Stat = { value: string; label: string }
+/** A proof fact on the phone's Home: a glyph, a short value, a caption. */
+export type Stat = { value: string; label: string; Icon: Icon }
 
 export type Profile = {
   name: string
@@ -51,10 +54,11 @@ export const profile: Profile = {
   verifiedLabel: 'PLACEHOLDER - what the tick means (e.g. a certification)',
   email: 'you@example.com',
   location: 'PLACEHOLDER - your city or timezone',
+  // Pick any icon from https://phosphoricons.com and import it above.
   stats: [
-    { value: '0 yrs', label: 'PLACEHOLDER' },
-    { value: '#000', label: 'PLACEHOLDER' },
-    { value: 'GMT+0', label: 'PLACEHOLDER' },
+    { value: '0 yrs', label: 'PLACEHOLDER', Icon: Briefcase },
+    { value: '#000', label: 'PLACEHOLDER', Icon: SealCheck },
+    { value: 'GMT+0', label: 'PLACEHOLDER', Icon: Clock },
   ],
   // The intro types this line, then flies it into the Home headline.
   // Keep it short: two halves, 5-8 words total.

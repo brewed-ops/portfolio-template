@@ -368,9 +368,10 @@ body {
 
 /* ============================================
    9. PHONES + TABLETS (below the 1100px shell breakpoint)
-   The same principles, applied to the pocket app shell: the tab bar as a
-   translucent material, press feedback on every touch target, type sized
-   for a thumb-distance screen, and scroll-snap tiles that carry momentum.
+   The same principles on the pocket app shell: type sized for a
+   thumb-distance screen and press feedback on the touch targets this sheet
+   styles. The phone's own components (tab bar, QuickMenu, Home's header,
+   stats, explore row, proof card) are owned whole by mobile-app.css.
    ============================================ */
 @media (max-width: 1099px) {
   /* ---------- Type: the phone floor ----------
@@ -384,82 +385,11 @@ body {
   .home__lede,
   .pgrid__lede,
   .view__lede { font-weight: 500; line-height: 1.5; letter-spacing: 0.002em; }
-  .pgrid__eyebrow,
-  .hproof__kicker { letter-spacing: 0.08em; }
-  .hstats span { letter-spacing: 0.05em; font-size: 11.5px; }
-  .hstats b { letter-spacing: -0.02em; }
+  .pgrid__eyebrow { letter-spacing: 0.08em; }
   .hprofile__name { letter-spacing: -0.018em; }
-  .htile__title { letter-spacing: -0.014em; font-weight: 600; }
-  .htile__desc,
-  .hproof__meta,
   .hprofile__handle { letter-spacing: 0.004em; }
-  .htile__n { letter-spacing: 0.06em; font-weight: 600; }
-  .hsec__title { letter-spacing: -0.012em; }
-
-  /* ---------- Tab bar: a floating material, not an opaque slab ----------
-     Content scrolls under it; the bar is dark glass with a bright top edge.
-     The active tab is a filled tint, the dot under the label goes. */
-  .tabbar {
-    height: 64px;
-    background: color-mix(in srgb, var(--navy-ink) 78%, transparent);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.12),
-      0 20px 50px -20px rgba(6, 12, 26, 0.55);
-    padding: 6px;
-  }
-  [data-theme='dark'] .tabbar { background: color-mix(in srgb, #04070F 78%, transparent); }
-  :root[data-perf] .tabbar { background: var(--navy-ink); }
-  .tabbar__tab {
-    gap: 3px;
-    border-radius: var(--radius-pill);
-    font-size: 10.5px;
-    letter-spacing: 0.02em;
-    color: rgba(244, 244, 237, 0.62);
-    transition: color var(--dur-fast) var(--ease-out),
-                background var(--dur-fast) var(--ease-out),
-                transform 100ms var(--ease-out);
-  }
-  .tabbar__tab:active { transform: scale(0.94); }
-  .tabbar__tab[aria-current='page'] {
-    color: var(--cream);
-    background: rgba(255, 255, 255, 0.08);
-  }
-  .tabbar__tab[aria-current='page'] .tabbar__label::after { display: none; }
-  .tabbar__tab[aria-current='page'] svg { color: var(--orange); }
-  .tabbar__tab--primary[aria-current='page'] { background: transparent; }
-  .tabbar__fab {
-    width: 54px;
-    height: 54px;
-    margin-top: -24px;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.35),
-      0 1px 2px rgba(6, 12, 26, 0.2),
-      0 10px 24px -10px rgba(255, 122, 26, 0.55);
-    transition: transform var(--dur-med) var(--ease-spring),
-                background var(--dur-fast) var(--ease-out);
-  }
-  .tabbar__tab--primary:active .tabbar__fab { transform: scale(0.92); transition-duration: 100ms; }
-
-  /* ---------- Floating theme switch: a small light material ---------- */
-  .theme-btn {
-    background: color-mix(in srgb, var(--white) 72%, transparent);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    border-color: var(--line);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 6px 16px -10px rgba(11, 30, 63, 0.35);
-    transition: transform var(--dur-med) var(--ease-spring), background var(--dur-fast) var(--ease-out);
-  }
-  [data-theme='dark'] .theme-btn { background: color-mix(in srgb, var(--paper) 72%, transparent); }
-  :root[data-perf] .theme-btn { background: var(--white); }
-  :root[data-perf][data-theme='dark'] .theme-btn { background: var(--paper); }
-  .theme-btn:active { transform: scale(0.92); transition-duration: 100ms; }
 
   /* ---------- Touch targets: instant, on the press ---------- */
-  .htile,
-  .hproof,
   .bento__card,
   .pfilter__btn,
   .home__cta {
@@ -468,8 +398,6 @@ body {
                 background var(--dur-fast) var(--ease-out),
                 color var(--dur-fast) var(--ease-out);
   }
-  .htile:active,
-  .hproof:active,
   .bento__card:active,
   .home__cta:active { transform: scale(0.97); transition-duration: 100ms; }
   .pfilter__btn:active { transform: scale(0.96); transition-duration: 100ms; }
@@ -479,82 +407,20 @@ body {
     .home__cta:hover { transform: none; }
   }
 
-  /* ---------- Explore tiles: momentum, then a snap ----------
-     Proximity snap lets a flick coast and settle on the nearest tile instead
-     of mandatory snapping that fights the throw. */
-  .htiles { scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
-  .htile {
-    border-radius: 20px;
-    border-color: var(--line);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.7),
-      0 1px 1.5px rgba(6, 12, 26, 0.04),
-      0 12px 30px -20px rgba(11, 30, 63, 0.3);
-  }
-  [data-theme='dark'] .htile { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 30px -20px rgba(0, 0, 0, 0.7); }
-  .htile__go { transition: transform var(--dur-med) var(--ease-spring); }
-  .htile:active .htile__go { transform: scale(0.9); }
-
-  /* ---------- Proof card + filter: hairlines and a soft segmented control ---------- */
-  .hproof {
-    border-radius: 18px;
-    border-color: var(--line);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 8px 24px -18px rgba(11, 30, 63, 0.3);
-  }
-  [data-theme='dark'] .hproof { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+  /* ---------- Filter: a soft segmented control ---------- */
   .pfilter { padding: 3px; gap: 3px; }
   .pfilter__btn { min-height: 34px; font-size: 13px; letter-spacing: -0.004em; }
   .pfilter__btn[aria-pressed='true'] {
     box-shadow: 0 1px 2px rgba(6, 12, 26, 0.08), 0 3px 10px -4px rgba(11, 30, 63, 0.25);
   }
-
-  /* ---------- Profile header ---------- */
-  .hprofile__avatar {
-    border-width: 0;
-    box-shadow: inset 0 0 0 1px var(--line), 0 6px 16px -8px rgba(11, 30, 63, 0.35);
-  }
-
-  /* ---------- Preferences on the phone shell ---------- */
-  @media (prefers-reduced-motion: reduce) {
-    .htile:active,
-    .hproof:active,
-    .tabbar__tab:active,
-    .tabbar__tab--primary:active .tabbar__fab,
-    .theme-btn:active { transform: none; }
-    .htile:active,
-    .hproof:active { box-shadow: inset 0 0 0 1px var(--line-strong); }
-    .tabbar__tab:active { background: rgba(255, 255, 255, 0.06); }
-  }
-  @media (prefers-reduced-transparency: reduce) {
-    .tabbar,
-    .theme-btn { backdrop-filter: none; -webkit-backdrop-filter: none; }
-    .tabbar { background: var(--navy-ink); }
-    .theme-btn { background: var(--white); }
-    [data-theme='dark'] .theme-btn { background: var(--paper); }
-  }
-  @media (prefers-contrast: more) {
-    .tabbar { border-color: rgba(255, 255, 255, 0.28); }
-    .htile,
-    .hproof,
-    .theme-btn { border-color: var(--line-strong); }
-  }
 }
 
-/* ---------- Tablets (640-1099px): reading measure, roomier tiles ----------
+/* ---------- Tablets (640-1099px): reading measure ----------
    Between the phone and the shell the page scrolls but has width to spare:
-   ledes get a measure instead of the full line, tiles grow with the screen. */
+   ledes get a measure instead of the full line. */
 @media (min-width: 640px) and (max-width: 1099px) {
   .home__lede,
   .pgrid__lede,
   .view__lede { max-width: 60ch; }
   .bento__card { border-radius: 22px; }
-  .htile { width: min(260px, 40vw); }
-}
-
-/* ---------- Small phones (<=380px): keep the bar's labels legible ---------- */
-@media (max-width: 380px) {
-  .tabbar { left: 10px; right: 10px; height: 62px; }
-  .tabbar__tab { font-size: 10px; }
-  .home__title { font-size: 28px; }
-  .htile { width: min(220px, 72vw); }
 }

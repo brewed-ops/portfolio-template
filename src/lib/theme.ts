@@ -13,6 +13,8 @@
  */
 export type Theme = 'light' | 'dark'
 
+import { motionReduced } from './a11y'
+
 const KEY = 'theme'
 
 export function getTheme(): Theme {
@@ -20,7 +22,12 @@ export function getTheme(): Theme {
 }
 
 function applyTheme(theme: Theme) {
-  document.documentElement.dataset.theme = theme
+  const root = document.documentElement
+  root.dataset.theme = theme
+  // The browser's own bar takes the page colour. Read from the token after
+  // the switch, so tokens.css stays the one place the palette lives.
+  const page = getComputedStyle(root).getPropertyValue('--cream').trim()
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', page)
   try {
     localStorage.setItem(KEY, theme)
   } catch {
@@ -48,7 +55,8 @@ type WithViewTransition = Document & {
 export function setTheme(theme: Theme, origin?: SweepOrigin) {
   const doc = document as WithViewTransition
   const root = document.documentElement
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const reduce =
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches || motionReduced()
   if (!doc.startViewTransition || reduce || getTheme() === theme) {
     applyTheme(theme)
     return

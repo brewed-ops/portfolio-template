@@ -19,7 +19,6 @@ const ToS = lazy(() => import('@/components/ToS'))
 const ThankYou = lazy(() => import('@/components/ThankYou'))
 import './styles/tokens.css'
 import './styles/global.css'
-import './styles/slab.css'
 import './styles/theme-glyph.css'
 // The legacy section sheets first, then the shell. The redesign overrides them
 // (the floating nav pill hiding behind the rail, the compact workflow), and
@@ -44,6 +43,8 @@ import './styles/mobile-app.css'
 import './styles/a11y.css'
 // Apple design pass - an overlay on everything above; perf.css still wins.
 import './styles/apple.css'
+// Mobile motion + component pass on top of it (phone shell only).
+import './styles/mobile-pass.css'
 // Last: the perf tiers only ever turn things OFF, so they must win.
 import './styles/perf.css'
 
